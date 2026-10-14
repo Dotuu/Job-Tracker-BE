@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,18 +34,18 @@ public class JobApplicationController {
   @PostMapping(consumes = "application/json")
   public ResponseEntity<JobApplicationResponse> createApplication(@AuthenticationPrincipal Jwt jwt, @RequestBody JobApplicationEntity jobAppEntity){
     String clerkUserId = jwt.getSubject();
-    return jobAppService.createApplicationForUser(clerkUserId, jobAppEntity);
+    return jobAppService.createApplication(clerkUserId, jobAppEntity);
   }
   
   @PutMapping("/{id}")
-  public ResponseEntity<JobApplicationResponse> updateApplication(@AuthenticationPrincipal Jwt jwt, @RequestBody JobApplicationEntity jobAppEntity){
+  public ResponseEntity<JobApplicationResponse> updateApplication(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody JobApplicationEntity jobAppEntity){
     String clerkUserId = jwt.getSubject();
-    return jobAppService.updateApplicationForUser(clerkUserId, jobAppEntity);
+    return jobAppService.updateApplication(clerkUserId, id, jobAppEntity);
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<JobApplicationResponse> deleteApplication(@AuthenticationPrincipal Jwt jwt, @RequestBody JobApplicationEntity jobAppEntity){
+  public ResponseEntity<Void> deleteApplication(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id){
     String clerkUserId = jwt.getSubject();
-    return jobAppService.deleteApplicationForUser(clerkUserId, jobAppEntity);
+    return jobAppService.deleteApplication(clerkUserId, id);
   }
 }

@@ -43,7 +43,7 @@ public class JobApplicationEntity {
   @Column(name = "date_applied", nullable = false)
   private LocalDate dateApplied;
 
-  @Column(name = "date_rejected") // TODO: have this auto reject once status is changed to rejected
+  @Column(name = "date_rejected") // auto-set in JobApplicationService when status changes to REJECTED
   private LocalDate dateRejected;
 
   @Column(columnDefinition = "TEXT")
