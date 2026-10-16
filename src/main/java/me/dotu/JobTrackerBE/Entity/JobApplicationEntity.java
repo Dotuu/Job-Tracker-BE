@@ -3,6 +3,9 @@ package me.dotu.JobTrackerBE.Entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,11 +14,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import me.dotu.JobTrackerBE.Model.ApplicationStatus;
+import me.dotu.JobTrackerBE.Model.LocationType;
 
 @Entity
 @Table(name = "job_applications")
@@ -35,6 +35,13 @@ public class JobApplicationEntity {
 
   @Column(name = "job_url", length = 2048)
   private String jobUrl;
+
+  @Column(name = "location", nullable = true)
+  private String location;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 30)
+  private LocationType locationType;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 30)
@@ -62,7 +69,6 @@ public class JobApplicationEntity {
   @UpdateTimestamp
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
-
 
   protected JobApplicationEntity() {}
 
@@ -169,4 +175,20 @@ public class JobApplicationEntity {
   public void setUpdatedAt(LocalDateTime updatedAt) {
     this.updatedAt = updatedAt;
   }
+
+  public String getLocation() {
+    return location;
+  }
+
+  public void setLocation(String location) {
+    this.location = location;
+  }
+
+    public LocationType getLocationType() {
+        return locationType;
+    }
+
+    public void setLocationType(LocationType locationType) {
+        this.locationType = locationType;
+    }
 }

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 import me.dotu.JobTrackerBE.Entity.JobApplicationEntity;
 import me.dotu.JobTrackerBE.Model.ApplicationStatus;
+import me.dotu.JobTrackerBE.Model.LocationType;
 
 public class JobApplicationResponse {
     private Long id;
@@ -15,6 +16,8 @@ public class JobApplicationResponse {
     private LocalDate dateRejected;
     private String notes;
     private String source;
+    private String location;
+    private LocationType locationType;
 
     public static JobApplicationResponse from(JobApplicationEntity entity) {
         JobApplicationResponse response = new JobApplicationResponse();
@@ -27,6 +30,8 @@ public class JobApplicationResponse {
         response.dateRejected = entity.getDateRejected();
         response.notes = entity.getNotes();
         response.source = entity.getSource();
+        response.location = entity.getLocation();
+        response.locationType = entity.getLocationType();
         return response;
     }
 
@@ -66,4 +71,11 @@ public class JobApplicationResponse {
         return source;
     }
 
+    public String getLocation(){
+        return location;
+    }
+
+    public LocationType getLocationType() {
+        return locationType;
+    }
 }

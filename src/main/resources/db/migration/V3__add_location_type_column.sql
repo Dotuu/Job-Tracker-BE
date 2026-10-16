@@ -1,0 +1,2 @@
+ALTER TABLE job_applications
+  ADD COLUMN location_type VARCHAR(30) NOT NULL DEFAULT 'REMOTE';
