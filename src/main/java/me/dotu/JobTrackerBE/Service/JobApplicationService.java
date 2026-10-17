@@ -28,6 +28,12 @@ public class JobApplicationService {
     .toList();
   }
 
+  public List<JobApplicationResponse> getSearchedApplications(String clerkUserId, String searchParams){
+    return searchParams.startsWith("#") ?
+      applicationRepo.searchTagsByUserId(clerkUserId, searchParams.replaceFirst("#", "")).stream().map(JobApplicationResponse::from).toList() :
+        applicationRepo.searchByUserId(clerkUserId, searchParams).stream().map(JobApplicationResponse::from).toList();
+  }
+
   private JobApplicationEntity checkEnums(JobApplicationEntity jobAppEntity){
   if (jobAppEntity.getStatus() == null) {
     jobAppEntity.setStatus(ApplicationStatus.APPLIED);

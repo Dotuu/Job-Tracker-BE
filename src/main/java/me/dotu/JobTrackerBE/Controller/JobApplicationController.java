@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import me.dotu.JobTrackerBE.Entity.JobApplicationEntity;
@@ -30,6 +31,12 @@ public class JobApplicationController {
       String clerkUserId = jwt.getSubject();
       return ResponseEntity.ok(jobAppService.getApplicationsForUser(clerkUserId));
   }
+
+  @GetMapping(path="/search", produces="application/json")
+    public ResponseEntity<List<JobApplicationResponse>> getSearchedApplications(@AuthenticationPrincipal Jwt jwt, @RequestParam String value){
+      String clerkUserId = jwt.getSubject();
+      return ResponseEntity.ok(jobAppService.getSearchedApplications(clerkUserId, value));
+    }
   
   @PostMapping(consumes = "application/json")
   public ResponseEntity<JobApplicationResponse> createApplication(@AuthenticationPrincipal Jwt jwt, @RequestBody JobApplicationEntity jobAppEntity){
