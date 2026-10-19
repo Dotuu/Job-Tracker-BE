@@ -53,10 +53,24 @@ public class JobApplicationService {
     return ResponseEntity.status(HttpStatus.CREATED).body(JobApplicationResponse.from(saved));
   }
 
+  public ResponseEntity<JobApplicationResponse> updateNotes(String clerkUserId, Long applicationId, String notes){
+    Optional<JobApplicationEntity> jobAppEntityO = applicationRepo.findByIdAndUserId(applicationId, clerkUserId);
+
+    if (!jobAppEntityO.isPresent()){
+      return ResponseEntity.notFound().build();
+    }
+
+    JobApplicationEntity jobAppEntity = jobAppEntityO.get();
+    jobAppEntity.setNotes(notes);
+
+    JobApplicationEntity saved = applicationRepo.save(jobAppEntity);
+    return ResponseEntity.ok(JobApplicationResponse.from(saved));
+  }
+
   public ResponseEntity<JobApplicationResponse> updateApplication(String clerkUserId, Long applicationId, JobApplicationEntity changes){
     Optional<JobApplicationEntity> jobAppEntityO = applicationRepo.findByIdAndUserId(applicationId, clerkUserId);
 
-    if (jobAppEntityO.isEmpty()){
+    if (!jobAppEntityO.isPresent()){
       return ResponseEntity.notFound().build();
     }
 

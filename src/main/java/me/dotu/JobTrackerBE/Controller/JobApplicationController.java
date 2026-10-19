@@ -8,6 +8,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -26,6 +27,8 @@ public class JobApplicationController {
   @Autowired 
   public JobApplicationService jobAppService;
   
+  public record UpdateNotesRequest(String notes) {}
+
   @GetMapping(produces = "application/json")
     public ResponseEntity<List<JobApplicationResponse>> getApplications(@AuthenticationPrincipal Jwt jwt) {
       String clerkUserId = jwt.getSubject();
@@ -42,6 +45,12 @@ public class JobApplicationController {
   public ResponseEntity<JobApplicationResponse> createApplication(@AuthenticationPrincipal Jwt jwt, @RequestBody JobApplicationEntity jobAppEntity){
     String clerkUserId = jwt.getSubject();
     return jobAppService.createApplication(clerkUserId, jobAppEntity);
+  }
+
+  @PatchMapping("/{id}/notes")
+  public ResponseEntity<JobApplicationResponse> updateNotes(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody UpdateNotesRequest request){
+    String clerkUserId = jwt.getSubject();
+    return jobAppService.updateNotes(clerkUserId, id, request.notes);
   }
   
   @PutMapping("/{id}")
