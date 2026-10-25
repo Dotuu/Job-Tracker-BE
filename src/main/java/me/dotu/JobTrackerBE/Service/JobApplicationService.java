@@ -13,13 +13,17 @@ import me.dotu.JobTrackerBE.Entity.JobApplicationEntity;
 import me.dotu.JobTrackerBE.Model.ApplicationStatus;
 import me.dotu.JobTrackerBE.Model.LocationType;
 import me.dotu.JobTrackerBE.Repository.JobApplicationRepository;
+import me.dotu.JobTrackerBE.Repository.ResumeRepository;
 import me.dotu.JobTrackerBE.Response.JobApplicationResponse;
 
 @Service
 public class JobApplicationService {
 
-  @Autowired 
+  @Autowired
   private JobApplicationRepository applicationRepo;
+
+  @Autowired
+  private ResumeRepository resumeRepo;
 
   public List<JobApplicationResponse> getApplicationsForUser(String clerkUserId){
     return applicationRepo.findByUserId(clerkUserId)
@@ -45,6 +49,8 @@ public class JobApplicationService {
 }
 
   public ResponseEntity<JobApplicationResponse> createApplication(String clerkUserId, JobApplicationEntity jobAppEntity){
+    jobAppEntity.setId(null);
+    jobAppEntity.setResumeId(null);
     jobAppEntity.setUserId(clerkUserId);
 
     jobAppEntity = checkEnums(jobAppEntity);
@@ -90,6 +96,24 @@ public class JobApplicationService {
       jobAppEntity.setDateRejected(LocalDate.now());
     }
     jobAppEntity.setStatus(newStatus);
+
+    JobApplicationEntity saved = applicationRepo.save(jobAppEntity);
+    return ResponseEntity.ok(JobApplicationResponse.from(saved));
+  }
+
+  public ResponseEntity<JobApplicationResponse> updateResume(String clerkUserId, Long applicationId, Long resumeId){
+    Optional<JobApplicationEntity> jobAppEntityO = applicationRepo.findByIdAndUserId(applicationId, clerkUserId);
+
+    if (jobAppEntityO.isEmpty()){
+      return ResponseEntity.notFound().build();
+    }
+
+    if (resumeId != null && !resumeRepo.existsByIdAndUserId(resumeId, clerkUserId)){
+      return ResponseEntity.notFound().build();
+    }
+
+    JobApplicationEntity jobAppEntity = jobAppEntityO.get();
+    jobAppEntity.setResumeId(resumeId);
 
     JobApplicationEntity saved = applicationRepo.save(jobAppEntity);
     return ResponseEntity.ok(JobApplicationResponse.from(saved));

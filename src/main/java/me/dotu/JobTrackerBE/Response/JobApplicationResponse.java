@@ -18,6 +18,7 @@ public class JobApplicationResponse {
     private String source;
     private String location;
     private LocationType locationType;
+    private Long resumeId;
 
     public static JobApplicationResponse from(JobApplicationEntity entity) {
         JobApplicationResponse response = new JobApplicationResponse();
@@ -32,6 +33,7 @@ public class JobApplicationResponse {
         response.source = entity.getSource();
         response.location = entity.getLocation();
         response.locationType = entity.getLocationType();
+        response.resumeId = entity.getResumeId();
         return response;
     }
 
@@ -77,5 +79,9 @@ public class JobApplicationResponse {
 
     public LocationType getLocationType() {
         return locationType;
+    }
+
+    public Long getResumeId() {
+        return resumeId;
     }
 }

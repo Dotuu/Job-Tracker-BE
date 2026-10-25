@@ -28,6 +28,7 @@ public class JobApplicationController {
   public JobApplicationService jobAppService;
   
   public record UpdateNotesRequest(String notes) {}
+  public record UpdateResumeRequest(Long resumeId) {}
 
   @GetMapping(produces = "application/json")
     public ResponseEntity<List<JobApplicationResponse>> getApplications(@AuthenticationPrincipal Jwt jwt) {
@@ -51,6 +52,12 @@ public class JobApplicationController {
   public ResponseEntity<JobApplicationResponse> updateNotes(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody UpdateNotesRequest request){
     String clerkUserId = jwt.getSubject();
     return jobAppService.updateNotes(clerkUserId, id, request.notes);
+  }
+
+  @PatchMapping("/{id}/resume")
+  public ResponseEntity<JobApplicationResponse> updateResume(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody UpdateResumeRequest request){
+    String clerkUserId = jwt.getSubject();
+    return jobAppService.updateResume(clerkUserId, id, request.resumeId());
   }
   
   @PutMapping("/{id}")
