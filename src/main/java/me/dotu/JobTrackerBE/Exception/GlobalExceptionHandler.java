@@ -35,7 +35,6 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(StorageException.class)
   public ProblemDetail handleStorage(StorageException e) {
-    // full details stay in the server log, the client gets a generic message
     log.error("Storage failure", e);
     return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Could not process file");
   }

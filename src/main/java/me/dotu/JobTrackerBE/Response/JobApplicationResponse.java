@@ -1,8 +1,10 @@
 package me.dotu.JobTrackerBE.Response;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import me.dotu.JobTrackerBE.Entity.JobApplicationEntity;
+import me.dotu.JobTrackerBE.Entity.TagEntity;
 import me.dotu.JobTrackerBE.Model.ApplicationStatus;
 import me.dotu.JobTrackerBE.Model.LocationType;
 
@@ -19,6 +21,7 @@ public class JobApplicationResponse {
     private String location;
     private LocationType locationType;
     private Long resumeId;
+    private List<Long> tagIds;
 
     public static JobApplicationResponse from(JobApplicationEntity entity) {
         JobApplicationResponse response = new JobApplicationResponse();
@@ -34,6 +37,7 @@ public class JobApplicationResponse {
         response.location = entity.getLocation();
         response.locationType = entity.getLocationType();
         response.resumeId = entity.getResumeId();
+        response.tagIds = entity.getTags().stream().map(TagEntity::getId).toList();
         return response;
     }
 
@@ -83,5 +87,9 @@ public class JobApplicationResponse {
 
     public Long getResumeId() {
         return resumeId;
+    }
+
+    public List<Long> getTagIds() {
+        return tagIds;
     }
 }

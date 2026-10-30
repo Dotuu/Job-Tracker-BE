@@ -2,9 +2,13 @@ package me.dotu.JobTrackerBE.Entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +17,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import me.dotu.JobTrackerBE.Model.ApplicationStatus;
 import me.dotu.JobTrackerBE.Model.LocationType;
@@ -24,7 +31,7 @@ public class JobApplicationEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(name = "user_id", nullable = false) // clerk user id
+  @Column(name = "user_id", nullable = false)
   private String userId;
 
   @Column(name = "company_name", nullable = false)
@@ -50,17 +57,26 @@ public class JobApplicationEntity {
   @Column(name = "date_applied", nullable = false)
   private LocalDate dateApplied;
 
-  @Column(name = "date_rejected") // auto-set in JobApplicationService when status changes to REJECTED
+  @Column(name = "date_rejected") 
   private LocalDate dateRejected;
 
   @Column(columnDefinition = "TEXT")
   private String notes;
 
-  @Column(length = 100) // linkedin, referral, etc
+  @Column(length = 100)
   private String source;
 
   @Column(name = "resume_id")
   private Long resumeId;
+
+  @JsonIgnore
+  @ManyToMany
+  @JoinTable(
+    name = "job_application_tags",
+    joinColumns = @JoinColumn(name = "job_application_id"),
+    inverseJoinColumns = @JoinColumn(name = "tag_id")
+  )
+  private Set<TagEntity> tags = new HashSet<>();
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -158,6 +174,14 @@ public class JobApplicationEntity {
 
   public void setResumeId(Long resumeId) {
     this.resumeId = resumeId;
+  }
+
+  public Set<TagEntity> getTags() {
+    return tags;
+  }
+
+  public void setTags(Set<TagEntity> tags) {
+    this.tags = tags;
   }
 
   public LocalDateTime getCreatedAt() {

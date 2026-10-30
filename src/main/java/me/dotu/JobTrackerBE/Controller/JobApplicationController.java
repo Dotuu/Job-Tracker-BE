@@ -29,6 +29,7 @@ public class JobApplicationController {
   
   public record UpdateNotesRequest(String notes) {}
   public record UpdateResumeRequest(Long resumeId) {}
+  public record UpdateTagsRequest(List<Long> tagIds) {}
 
   @GetMapping(produces = "application/json")
     public ResponseEntity<List<JobApplicationResponse>> getApplications(@AuthenticationPrincipal Jwt jwt) {
@@ -60,6 +61,12 @@ public class JobApplicationController {
     return jobAppService.updateResume(clerkUserId, id, request.resumeId());
   }
   
+  @PutMapping("/{id}/tags")
+  public ResponseEntity<JobApplicationResponse> updateTags(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody UpdateTagsRequest request){
+    String clerkUserId = jwt.getSubject();
+    return jobAppService.updateTags(clerkUserId, id, request.tagIds());
+  }
+
   @PutMapping("/{id}")
   public ResponseEntity<JobApplicationResponse> updateApplication(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody JobApplicationEntity jobAppEntity){
     String clerkUserId = jwt.getSubject();

@@ -1,8 +1,10 @@
 package me.dotu.JobTrackerBE.Service;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -10,10 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import me.dotu.JobTrackerBE.Entity.JobApplicationEntity;
+import me.dotu.JobTrackerBE.Entity.TagEntity;
 import me.dotu.JobTrackerBE.Model.ApplicationStatus;
 import me.dotu.JobTrackerBE.Model.LocationType;
 import me.dotu.JobTrackerBE.Repository.JobApplicationRepository;
 import me.dotu.JobTrackerBE.Repository.ResumeRepository;
+import me.dotu.JobTrackerBE.Repository.TagRepository;
 import me.dotu.JobTrackerBE.Response.JobApplicationResponse;
 
 @Service
@@ -24,6 +28,9 @@ public class JobApplicationService {
 
   @Autowired
   private ResumeRepository resumeRepo;
+
+  @Autowired
+  private TagRepository tagRepo;
 
   public List<JobApplicationResponse> getApplicationsForUser(String clerkUserId){
     return applicationRepo.findByUserId(clerkUserId)
@@ -114,6 +121,30 @@ public class JobApplicationService {
 
     JobApplicationEntity jobAppEntity = jobAppEntityO.get();
     jobAppEntity.setResumeId(resumeId);
+
+    JobApplicationEntity saved = applicationRepo.save(jobAppEntity);
+    return ResponseEntity.ok(JobApplicationResponse.from(saved));
+  }
+
+  public ResponseEntity<JobApplicationResponse> updateTags(String clerkUserId, Long applicationId, List<Long> tagIds){
+    Optional<JobApplicationEntity> jobAppEntityO = applicationRepo.findByIdAndUserId(applicationId, clerkUserId);
+
+    if (jobAppEntityO.isEmpty()){
+      return ResponseEntity.notFound().build();
+    }
+
+    Set<Long> requestedIds = tagIds == null ? Set.of() : new HashSet<>(tagIds);
+    List<TagEntity> tags = requestedIds.isEmpty()
+      ? List.of()
+      : tagRepo.findAllByIdInAndUserId(requestedIds, clerkUserId);
+
+    if (tags.size() != requestedIds.size()){
+      return ResponseEntity.notFound().build();
+    }
+
+    JobApplicationEntity jobAppEntity = jobAppEntityO.get();
+    jobAppEntity.getTags().clear();
+    jobAppEntity.getTags().addAll(tags);
 
     JobApplicationEntity saved = applicationRepo.save(jobAppEntity);
     return ResponseEntity.ok(JobApplicationResponse.from(saved));
