@@ -11,12 +11,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import jakarta.transaction.Transactional;
 import me.dotu.JobTrackerBE.Entity.JobApplicationEntity;
+import me.dotu.JobTrackerBE.Entity.StatusHistoryEntity;
 import me.dotu.JobTrackerBE.Entity.TagEntity;
 import me.dotu.JobTrackerBE.Model.ApplicationStatus;
 import me.dotu.JobTrackerBE.Model.LocationType;
 import me.dotu.JobTrackerBE.Repository.JobApplicationRepository;
 import me.dotu.JobTrackerBE.Repository.ResumeRepository;
+import me.dotu.JobTrackerBE.Repository.StatusHistoryRepository;
 import me.dotu.JobTrackerBE.Repository.TagRepository;
 import me.dotu.JobTrackerBE.Response.JobApplicationResponse;
 
@@ -31,6 +34,9 @@ public class JobApplicationService {
 
   @Autowired
   private TagRepository tagRepo;
+
+  @Autowired
+  private StatusHistoryRepository statusHistoryRepository;
 
   public List<JobApplicationResponse> getApplicationsForUser(String clerkUserId){
     return applicationRepo.findByUserId(clerkUserId)
@@ -55,6 +61,7 @@ public class JobApplicationService {
   return jobAppEntity;
 }
 
+  @Transactional 
   public ResponseEntity<JobApplicationResponse> createApplication(String clerkUserId, JobApplicationEntity jobAppEntity){
     jobAppEntity.setId(null);
     jobAppEntity.setResumeId(null);
@@ -63,6 +70,8 @@ public class JobApplicationService {
     jobAppEntity = checkEnums(jobAppEntity);
 
     JobApplicationEntity saved = applicationRepo.save(jobAppEntity);
+    statusHistoryRepository.save(new StatusHistoryEntity(clerkUserId, saved.getId(), saved.getStatus()));
+
     return ResponseEntity.status(HttpStatus.CREATED).body(JobApplicationResponse.from(saved));
   }
 
@@ -80,6 +89,7 @@ public class JobApplicationService {
     return ResponseEntity.ok(JobApplicationResponse.from(saved));
   }
 
+  @Transactional 
   public ResponseEntity<JobApplicationResponse> updateApplication(String clerkUserId, Long applicationId, JobApplicationEntity changes){
     Optional<JobApplicationEntity> jobAppEntityO = applicationRepo.findByIdAndUserId(applicationId, clerkUserId);
 
@@ -87,7 +97,9 @@ public class JobApplicationService {
       return ResponseEntity.notFound().build();
     }
 
-    JobApplicationEntity jobAppEntity = checkEnums(jobAppEntityO.get());
+    JobApplicationEntity jobAppEntity = jobAppEntityO.get();
+    changes = checkEnums(changes);
+
     jobAppEntity.setCompanyName(changes.getCompanyName());
     jobAppEntity.setRoleTitle(changes.getRoleTitle());
     jobAppEntity.setJobUrl(changes.getJobUrl());
@@ -97,6 +109,7 @@ public class JobApplicationService {
     jobAppEntity.setLocation(changes.getLocation());
     jobAppEntity.setLocationType(changes.getLocationType());
 
+    ApplicationStatus oldStatus = jobAppEntity.getStatus();
     ApplicationStatus newStatus = changes.getStatus();
 
     if (newStatus == ApplicationStatus.REJECTED && jobAppEntity.getDateRejected() == null){
@@ -105,6 +118,11 @@ public class JobApplicationService {
     jobAppEntity.setStatus(newStatus);
 
     JobApplicationEntity saved = applicationRepo.save(jobAppEntity);
+
+    if (newStatus != oldStatus){
+      statusHistoryRepository.save(new StatusHistoryEntity(clerkUserId, saved.getId(), newStatus));
+    }
+
     return ResponseEntity.ok(JobApplicationResponse.from(saved));
   }
 
