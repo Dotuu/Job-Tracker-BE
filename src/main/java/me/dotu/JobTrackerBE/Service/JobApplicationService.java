@@ -21,6 +21,7 @@ import me.dotu.JobTrackerBE.Repository.JobApplicationRepository;
 import me.dotu.JobTrackerBE.Repository.ResumeRepository;
 import me.dotu.JobTrackerBE.Repository.StatusHistoryRepository;
 import me.dotu.JobTrackerBE.Repository.TagRepository;
+import me.dotu.JobTrackerBE.Request.JobApplicationRequest;
 import me.dotu.JobTrackerBE.Response.JobApplicationResponse;
 
 @Service
@@ -51,23 +52,39 @@ public class JobApplicationService {
         applicationRepo.searchByUserId(clerkUserId, searchParams).stream().map(JobApplicationResponse::from).toList();
   }
 
-  private JobApplicationEntity checkEnums(JobApplicationEntity jobAppEntity){
-  if (jobAppEntity.getStatus() == null) {
-    jobAppEntity.setStatus(ApplicationStatus.APPLIED);
+  private static ApplicationStatus statusOrDefault(ApplicationStatus status){
+    return status == null ? ApplicationStatus.APPLIED : status;
   }
-  if (jobAppEntity.getLocationType() == null) {
-    jobAppEntity.setLocationType(LocationType.REMOTE);
-  }
-  return jobAppEntity;
-}
 
-  @Transactional 
-  public ResponseEntity<JobApplicationResponse> createApplication(String clerkUserId, JobApplicationEntity jobAppEntity){
-    jobAppEntity.setId(null);
-    jobAppEntity.setResumeId(null);
+  private static LocationType locationTypeOrDefault(LocationType locationType){
+    return locationType == null ? LocationType.REMOTE : locationType;
+  }
+
+  private static String blankToNull(String value){
+    return value == null || value.isBlank() ? null : value.trim();
+  }
+
+  private static void applyRequest(JobApplicationEntity entity, JobApplicationRequest request){
+    entity.setCompanyName(request.companyName().trim());
+    entity.setRoleTitle(request.roleTitle().trim());
+    entity.setJobUrl(blankToNull(request.jobUrl()));
+    entity.setDateApplied(request.dateApplied());
+    entity.setSource(blankToNull(request.source()));
+    entity.setLocation(blankToNull(request.location()));
+    entity.setLocationType(locationTypeOrDefault(request.locationType()));
+  }
+
+  @Transactional
+  public ResponseEntity<JobApplicationResponse> createApplication(String clerkUserId, JobApplicationRequest request){
+    JobApplicationEntity jobAppEntity = new JobApplicationEntity();
     jobAppEntity.setUserId(clerkUserId);
+    applyRequest(jobAppEntity, request);
 
-    jobAppEntity = checkEnums(jobAppEntity);
+    ApplicationStatus status = statusOrDefault(request.status());
+    jobAppEntity.setStatus(status);
+    if (status == ApplicationStatus.REJECTED){
+      jobAppEntity.setDateRejected(LocalDate.now());
+    }
 
     JobApplicationEntity saved = applicationRepo.save(jobAppEntity);
     statusHistoryRepository.save(new StatusHistoryEntity(clerkUserId, saved.getId(), saved.getStatus()));
@@ -90,7 +107,7 @@ public class JobApplicationService {
   }
 
   @Transactional 
-  public ResponseEntity<JobApplicationResponse> updateApplication(String clerkUserId, Long applicationId, JobApplicationEntity changes){
+  public ResponseEntity<JobApplicationResponse> updateApplication(String clerkUserId, Long applicationId, JobApplicationRequest request){
     Optional<JobApplicationEntity> jobAppEntityO = applicationRepo.findByIdAndUserId(applicationId, clerkUserId);
 
     if (!jobAppEntityO.isPresent()){
@@ -98,19 +115,11 @@ public class JobApplicationService {
     }
 
     JobApplicationEntity jobAppEntity = jobAppEntityO.get();
-    changes = checkEnums(changes);
-
-    jobAppEntity.setCompanyName(changes.getCompanyName());
-    jobAppEntity.setRoleTitle(changes.getRoleTitle());
-    jobAppEntity.setJobUrl(changes.getJobUrl());
-    jobAppEntity.setDateApplied(changes.getDateApplied());
-    jobAppEntity.setNotes(changes.getNotes());
-    jobAppEntity.setSource(changes.getSource());
-    jobAppEntity.setLocation(changes.getLocation());
-    jobAppEntity.setLocationType(changes.getLocationType());
+    // Notes are intentionally not touched here; they have their own PATCH /notes endpoint.
+    applyRequest(jobAppEntity, request);
 
     ApplicationStatus oldStatus = jobAppEntity.getStatus();
-    ApplicationStatus newStatus = changes.getStatus();
+    ApplicationStatus newStatus = statusOrDefault(request.status());
 
     if (newStatus == ApplicationStatus.REJECTED && jobAppEntity.getDateRejected() == null){
       jobAppEntity.setDateRejected(LocalDate.now());

@@ -86,7 +86,7 @@ public class JobApplicationEntity {
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 
-  protected JobApplicationEntity() {}
+  public JobApplicationEntity() {}
 
   public Long getId() {
     return id;

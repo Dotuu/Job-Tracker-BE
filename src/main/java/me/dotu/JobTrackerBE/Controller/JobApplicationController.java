@@ -17,17 +17,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import me.dotu.JobTrackerBE.Entity.JobApplicationEntity;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
+import me.dotu.JobTrackerBE.Request.JobApplicationRequest;
 import me.dotu.JobTrackerBE.Response.JobApplicationResponse;
 import me.dotu.JobTrackerBE.Service.JobApplicationService;
 
 @RestController
 @RequestMapping("api/applications")
 public class JobApplicationController {
-  @Autowired 
+  @Autowired
   public JobApplicationService jobAppService;
-  
-  public record UpdateNotesRequest(String notes) {}
+
+  public record UpdateNotesRequest(@Size(max = JobApplicationRequest.MAX_NOTES_LENGTH) String notes) {}
   public record UpdateResumeRequest(Long resumeId) {}
   public record UpdateTagsRequest(List<Long> tagIds) {}
 
@@ -44,13 +46,13 @@ public class JobApplicationController {
     }
   
   @PostMapping(consumes = "application/json")
-  public ResponseEntity<JobApplicationResponse> createApplication(@AuthenticationPrincipal Jwt jwt, @RequestBody JobApplicationEntity jobAppEntity){
+  public ResponseEntity<JobApplicationResponse> createApplication(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody JobApplicationRequest request){
     String clerkUserId = jwt.getSubject();
-    return jobAppService.createApplication(clerkUserId, jobAppEntity);
+    return jobAppService.createApplication(clerkUserId, request);
   }
 
   @PatchMapping("/{id}/notes")
-  public ResponseEntity<JobApplicationResponse> updateNotes(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody UpdateNotesRequest request){
+  public ResponseEntity<JobApplicationResponse> updateNotes(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @Valid @RequestBody UpdateNotesRequest request){
     String clerkUserId = jwt.getSubject();
     return jobAppService.updateNotes(clerkUserId, id, request.notes);
   }
@@ -68,9 +70,9 @@ public class JobApplicationController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<JobApplicationResponse> updateApplication(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @RequestBody JobApplicationEntity jobAppEntity){
+  public ResponseEntity<JobApplicationResponse> updateApplication(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id, @Valid @RequestBody JobApplicationRequest request){
     String clerkUserId = jwt.getSubject();
-    return jobAppService.updateApplication(clerkUserId, id, jobAppEntity);
+    return jobAppService.updateApplication(clerkUserId, id, request);
   }
 
   @DeleteMapping("/{id}")
